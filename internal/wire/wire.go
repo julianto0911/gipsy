@@ -2,12 +2,12 @@ package wire
 
 import (
 	"app/pkg/middleware"
-	"app/pkg/utils"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func Wiring(appCfg *utils.AppConfig) *gin.Engine {
+func Wiring(db *gorm.DB) *gin.Engine {
 	router := gin.New()
 	gin.SetMode(gin.ReleaseMode)
 	router.Use(
@@ -16,7 +16,7 @@ func Wiring(appCfg *utils.AppConfig) *gin.Engine {
 	)
 
 	api := router.Group("/api/v1")
-	wireSystem(api, appCfg)
+	wireProduct(api, db)
 
 	return router
 }

@@ -359,4 +359,45 @@ The last part is the wiring.
 Each elements in layers doesn't know about each other, that's why in golang there are terms dependency injection.
 In my own terms, i use word "wire" or "wiring" , just like what we do in electronics where we link 1 component to other through wiring.
 
+```
+func Wiring(db *gorm.DB) *gin.Engine {
+	router := gin.New()
+	gin.SetMode(gin.ReleaseMode)
+	router.Use(
+		gin.Recovery(),
+		middleware.RequestID(),
+	)
 
+	api := router.Group("/api/v1")
+	wireProduct(api, db)
+
+	return router
+}
+
+
+
+func wireProduct(router *gin.RouterGroup, db *gorm.DB) {
+	rProduct := repository.NewProductRepo(db)
+	ucProduct := ucproduct.NewProductUseCase(rProduct)
+	adpProduct := adaptor.NewProductAdaptor(ucProduct)
+
+	router.POST("/create", adpProduct.Create)
+}
+
+```
+
+Explanation : 
+1. We initiate the database connection.
+2. We create a function named `wireProduct` that will wire the product layer.
+3. In `wireProduct` function, we create repository, usecase, and adaptor.
+4. We tell gin to use `wireProduct` function when receiving `/api/v1/create` request.
+
+For basic programming purpose, this clean approach may not seem necessary, often make things complicated.
+But for moving forward to software engineering, clean approach is a must.
+
+Next topic i will cover on how to use this clean architecture to simplify your life when doing unit testing.
+
+If you have any input or suggestion, please feel free to contact me. 
+Email : julianto@lumoshive.com
+
+Thank you.

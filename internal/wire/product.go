@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func wireSystem(router *gin.RouterGroup, db *gorm.DB) {
+func wireProduct(router *gin.RouterGroup, db *gorm.DB) {
 	rProduct := repository.NewProductRepo(db)
 	ucProduct := ucproduct.NewProductUseCase(rProduct)
 	adpProduct := adaptor.NewProductAdaptor(ucProduct)

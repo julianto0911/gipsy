@@ -17,8 +17,14 @@ func main() {
 
 	logger.Info("app config", zap.Any("appCfg", appCfg))
 
-	router := wire.Wiring(&appCfg)
+	//init db connection
+	dbCfg := utils.GetDBConfig()
+	conn := utils.ConnectDB(dbCfg)
+	db := utils.InitGorm(conn, dbCfg)
 
+	//perform wiring/dependency injection
+	router := wire.Wiring(db)
+
+	//start server
 	server.ApiServer(logger, appCfg.Port, appCfg.Name, router)
-
 }

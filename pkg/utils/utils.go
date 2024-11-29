@@ -2,7 +2,6 @@ package utils
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 
@@ -21,7 +20,6 @@ func InitLogger(path string, debug bool) *zap.Logger {
 
 func ConnectDB(cfg tools.DBConfiguration) *sql.DB {
 	cfg.DbType = tools.Postgresql
-	fmt.Println(cfg)
 	sqlConn, err := tools.ConnectDB(cfg)
 	if err != nil {
 		log.Fatal("can't connect to database ", err)
@@ -52,8 +50,6 @@ func GetAppConfig() AppConfig {
 		SAdminUsername: tools.EnvString("SADMIN_USERNAME"),
 		SAdminPassword: tools.EnvString("SADMIN_PASSWORD"),
 	}
-
-	fmt.Println("data app config", cfg)
 
 	//default port
 	if cfg.Port == "" {
