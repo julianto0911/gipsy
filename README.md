@@ -54,7 +54,7 @@ project
 |-- go.sum
 ```
 
-## First Form (Part 1):
+## First Layer (Part 1):
 _establish definition for data/table_
 
 I would like to introduce terms "entity".
@@ -93,7 +93,7 @@ func (c *EProduct) TableName() string {
 ``` 
 
 
-## First Form (Part 2):
+## First Layer (Part 2):
 _establish interface for entity_
 
 After defining the entity, some source will interface it.
@@ -132,7 +132,7 @@ func returnB() IProduct{
 
 ```
 
-### First Form (Part 3):
+### First Layer (Part 3):
 _establish repository for entity_
 
 In repository level, things get interesting.
@@ -168,7 +168,7 @@ Ok, from here you already have a basic repository :
 1. a repository uses entity to get or push data into or from database, using database connection (db property).
 2. a repository should contains only create,update,delete, get method, in the simplest way. It should not contain business logic.
 
-## First Form (Part 4):
+## First Layer (Part 4):
 _establish interface for repository_
 
 After defining the repository, we need to define the interface for it.
@@ -206,7 +206,7 @@ Ok , before we continue, let's summarize what we got :
 After First Form finish, you have the data/entity/repository layer at hand. We will continue to the usecase layer.
 
 
-## Second Form (Part 1):
+## Second Layer (Part 1):
 _establish usecase_
 
 Simplified : Usecase is to Clean, as Controller is to MVC.
@@ -248,7 +248,7 @@ func (uc *productUC) Create(input InputProduct) (*repository.EProduct, error) {
 
 The principle of Clean Architecture, you can use/pass/reference elements  from inside the layer but not the other way around.
 
-## Second Form (Part 2):
+## Second Layer (Part 2):
 _establish interface for usecase_
 
 Next we will interface the productUC, and create function to return the interface.
@@ -282,7 +282,7 @@ Ok, before we continue, let's summarize what we got :
 
 After Second Form finish, you have the repository at first layer,usecase at secondlayer. We will continue to the adaptor layer.
 
-## Third Form (Part 1):
+## Third Layer (Part 1):
 _establish adaptor_
 
 Adaptor is the layer that communicate with the external world, in this case, http request.
@@ -315,7 +315,7 @@ func (adp *productAdaptor) Create(c *gin.Context) {
 
 Here i use gin framework, but you can use any framework that you want.      
 
-## Third Form (Part 2):
+## Third Layer (Part 2):
 _establish interface for adaptor_
 
 ```
