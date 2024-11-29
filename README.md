@@ -1,4 +1,4 @@
-#Clean Architecture
+# Clean Architecture
 
 ##Brief Introduction
 Pardon for my bad english as i am not a native english speaker.
@@ -16,7 +16,7 @@ may find some of my terms are similar to MVC,or the way it works.
 
 
 
-##Foundation 
+## Foundation 
 Standard Layers :
 1. Adaptor/Handler
     - This layer is responsible for handling the request and response.
@@ -34,19 +34,21 @@ Standard Layers :
     - It is the only layer that can access the external world (http request, db, etc).
     - This layer is responsible for handling the data.
 
-##Folder Structure : 
-
+## Folder Structure : 
+```
+project
 ├── 📂 cmd
-│ └── 📂 app
+│   └── 📂 server
 ├── 📂 internal
 │ ├── 📂 adaptor
-│ ├── 📂 controller
 │ ├── 📂 data
-│ │ ├── 📂 entity
-│ │ ├── 📂 repo
 │ ├── 📂 usecase
-│ └── 📂 wire
+│ ├── 📂 wire
 ├── 📂 pkg
 │ ├── 📂 utils
-│ └── 📂 middleware
+│ ├── 📂 middleware
 │ └── 📂 response
+|-- .env
+|-- go.mod
+|-- go.sum
+```
