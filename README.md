@@ -395,9 +395,5 @@ Explanation :
 For basic programming purpose, this clean approach may not seem necessary, often make things complicated.
 But for moving forward to software engineering, clean approach is a must.
 
-Next topic i will cover on how to use this clean architecture to simplify your life when doing unit testing.
-
-If you have any input or suggestion, please feel free to contact me. 
-Email : julianto@lumoshive.com
-
-Thank you.
+Of course, in this codebase i intentionally leaving something behind unexplained, its up to you to expand the concept and find out your own ways to fix the part.
+Remember, programming is an art that expanse overtime, accordingly and beautifully, happy coding :)
