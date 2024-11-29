@@ -203,10 +203,160 @@ Ok , before we continue, let's summarize what we got :
 4. repository's interface : to make the repository interchangeable on other level.
 5. we create function that returns repository's interface, but what we return is the implementation of repository itself.
 
+After First Form finish, you have the data/entity/repository layer at hand. We will continue to the usecase layer.
+
 
 ## Second Form (Part 1):
 _establish usecase_
 
-Simplified : Usecase is to Clean, as controller is to MVC.
+Simplified : Usecase is to Clean, as Controller is to MVC.
+
+Ok, the usecase is the business, logic layer of the application.
+What is business logic? 
+Example : 
+1. A Product must have at least 3 character name.
+2. Product Brand ID must be defined first in Brand table.
+3. After create product, send email notification to supervisor.
+4. etc...
+
+Here in usecase , you need to define the rules, and flow of the application.
+We will do it in a very simple way, just to get you familiar with the concept.
+
+```
+type productUC struct {
+	product repository.RProduct
+}
+
+```
+The same principle for productUC to stay private, it will be represent later by ProductUC interface.
+
+Then we create function to receive the input of the product, name it InputProduct, stores in `usecase/product/parameter.go`
+```
+type InputProduct struct {
+	Name string `json:"name"`
+}
+```
+
+You can see we added json tag, later this InputProduct struct will be used for http request in adaptor layer.
+
+Next, we create function to process the input, and return the output.
+```
+func (uc *productUC) Create(input InputProduct) (*repository.EProduct, error) {
+	return uc.product.Create(input.Name)
+}
+```
+
+The principle of Clean Architecture, you can use/pass/reference elements  from inside the layer but not the other way around.
+
+## Second Form (Part 2):
+_establish interface for usecase_
+
+Next we will interface the productUC, and create function to return the interface.
+
+```
+type ProductUC interface {
+	Create(input InputProduct) (*repository.EProduct, error)
+}
+```
+
+```
+func NewProductUseCase(product repository.RProduct) ProductUC {
+	return &productUC{
+		product: product,
+	}
+}
+```
+
+Here you may find resemblance of how usecase formed as in the repository layer. Yes it is practically the same.
+
+
+Ok, before we continue, let's summarize what we got : 
+1. entity : table definition
+2. repository : actual operation of data, using database connection.
+3. repository process and return entity.
+4. repository's interface : to make the repository interchangeable on other level.
+5. we create function that returns repository's interface, but what we return is the implementation of repository itself.
+6. usecase : define the business logic, process the input, and return the output.
+7. usecase's interface : to make the usecase interchangeable on other level.
+8. we create function that returns usecase's interface, but what we return is the implementation of usecase itself.
+
+After Second Form finish, you have the repository at first layer,usecase at secondlayer. We will continue to the adaptor layer.
+
+## Third Form (Part 1):
+_establish adaptor_
+
+Adaptor is the layer that communicate with the external world, in this case, http request.
+```
+type productAdaptor struct {
+	ucProduct usecase.ProductUC
+}
+```
+
+We create function to receive input and pass it to usecase.
+```
+func (adp *productAdaptor) Create(c *gin.Context) {
+	input := usecase.InputProduct{}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.Error(c, http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	product, err := adp.ucProduct.Create(input)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, product)
+}
+```
+
+Here i use gin framework, but you can use any framework that you want.      
+
+## Third Form (Part 2):
+_establish interface for adaptor_
+
+```
+type ProductAdaptor interface {
+	Create(c *gin.Context)
+}
+```
+
+Last we create function to return the adaptor's interface, and inject the usecase into it.
+```
+func NewProductAdaptor(ucProduct usecase.ProductUC) ProductAdaptor {
+	return &productAdaptor{
+		ucProduct: ucProduct,
+	}
+}
+```
+
+Ok, before we continue, let's summarize what we got : 
+1. entity : table definition
+2. repository : actual operation of data, using database connection.
+3. repository process and return entity.
+4. repository's interface : to make the repository interchangeable on other level.
+5. we create function that returns repository's interface, but what we return is the implementation of repository itself.
+6. usecase : define the business logic, process the input, and return the output.
+7. usecase's interface : to make the usecase interchangeable on other level.
+8. we create function that returns usecase's interface, but what we return is the implementation of usecase itself.
+9. adaptor : communicate with the external world, in this case, http request.
+10. adaptor's interface : to make the adaptor interchangeable on other level.
+11. we create function that returns adaptor's interface, but what we return is the implementation of adaptor itself.
+
+An addition to the codebase : 
+1. 1 adaptor may have 1 or more usecase, and 1 usecase may be used by 1 or more adaptor.
+2. 1 usecase may have 1 or more repository, and 1 repository may be used by 1 or more usecase.
+3. 1 repository may have 1 or more entity.
+
+After Third Form finish, you have the repository at first layer,usecase at secondlayer, and adaptor at third layer.
+
+The last part is the wiring.
+
+## Wiring
+Each elements in layers doesn't know about each other, that's why in golang there are terms dependency injection.
+In my own terms, i use word "wire" or "wiring" , just like what we do in electronics where we link 1 component to other through wiring.
 
 

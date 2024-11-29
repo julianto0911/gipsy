@@ -2,20 +2,6 @@ package repository
 
 import "gorm.io/gorm"
 
-// repository for product
-func NewProductRepo(db *gorm.DB) IProduct {
-	repo := &rProduct{
-		db: db,
-	}
-
-	return repo
-}
-
-// interface for product repository
-type IProduct interface {
-	Create(name string) (*EProduct, error)
-}
-
 // entity for product
 type EProduct struct {
 	ID   int64  `gorm:"column:id"`
@@ -26,11 +12,26 @@ func (c *EProduct) TableName() string {
 	return "products"
 }
 
+// repository for product
+func NewProductRepo(db *gorm.DB) RProduct {
+	repo := &rProduct{
+		db: db,
+	}
+
+	return repo
+}
+
+// interface for product repository
+type RProduct interface {
+	Create(name string) (*EProduct, error)
+}
+
 // internal repository for product
 type rProduct struct {
 	db *gorm.DB
 }
 
+// create product with name
 func (r *rProduct) Create(name string) (*EProduct, error) {
 	product := EProduct{}
 

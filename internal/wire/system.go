@@ -2,17 +2,17 @@ package wire
 
 import (
 	"app/internal/adaptor"
-	"app/internal/data/repo"
-	ucsystem "app/internal/usecase/system"
-	"app/pkg/utils"
+	"app/internal/repository"
+	ucproduct "app/internal/usecase/product"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func wireSystem(router *gin.RouterGroup, cfg *utils.AppConfig) {
-	sadminRepo := repo.NewSadminRepo(cfg.SAdminUsername, cfg.SAdminPassword)
-	systemUC := ucsystem.NewSystemUseCase(sadminRepo)
-	systemAdaptor := adaptor.NewSystemAdaptor(systemUC)
+func wireSystem(router *gin.RouterGroup, db *gorm.DB) {
+	rProduct := repository.NewProductRepo(db)
+	ucProduct := ucproduct.NewProductUseCase(rProduct)
+	adpProduct := adaptor.NewProductAdaptor(ucProduct)
 
-	router.POST("/login", systemAdaptor.VerifySAdminLogin)
+	router.POST("/create", adpProduct.Create)
 }
