@@ -4,10 +4,9 @@
 Pardon for my bad english as i am not a native english speaker.
 Here i would like to share my piece of code for clean architecture with golang.
 
-My essential understanding about the concept ofclean architecture, especially in the context of golang : 
+My essential understanding about the concept of clean architecture, especially in the context of golang : 
 1. Each parts should be independently able to be tested, replaceable, and maintainable.
-2. Each layer should be indirectly access by other layer, in which we use interface to achieve it.
-3. Each implementation of component of each layer, should be solitary, non accessible from outside of its layer.
+2. Each layer should be indirectly access by other layer, in which we use interface to achieve it. 
 
 I understand that clean code approach sometimes overwhelming for people that try to understand it.
 Therefore here i will try to explain it as simple and easy as possible.
@@ -43,7 +42,7 @@ project
 │   └── 📂 server
 ├── 📂 internal
 │ ├── 📂 adaptor
-│ ├── 📂 data
+│ ├── 📂 repository
 │ ├── 📂 usecase
 │ ├── 📂 wire
 ├── 📂 pkg
@@ -56,23 +55,23 @@ project
 ```
 
 ## First Form (Part 1):
-_establish definition for data and its interface_
+_establish definition for data/table_
 
 I would like to introduce terms "entity".
 You can think of entity as a table structure/definition that will be used in the application.
 It's similar to model in MVC.
 
-For entity is stored in folder `internal/data/entity`.
+For entity is stored in folder `internal/repository`.
 
 ```
-type eProduct struct {
+type EProduct struct {
 	ID   int64  `gorm:"column:id"`
 	Name string `gorm:"column:name"`
 }
 
 ```
 
-e stands for entity, followed by name of entity.
+E stands for entity, followed by name of entity.
 
 You may also make definition of actual data using tagging, i used gorm tag for this.
 
@@ -81,35 +80,133 @@ You may also define foreign key, entity relationship, etc.
 JSON tag is not used here as it is not designed to be use for response directly.
 
 I also create method named `TableName()` in the entity, it is used to define the table name in the database.
+```
+type EProduct struct {
+	ID   int64  `gorm:"column:id"`
+	Name string `gorm:"column:name"`
+}
 
-You may ask why stay private? 
-For component that is private, you cannot by mistake, use it directly from other layer/package. 
-This rule will be apply to all components on any layer.
+func (c *EProduct) TableName() string {
+	return "products"
+}
+
+``` 
 
 
 ## First Form (Part 2):
 _establish interface for entity_
 
-It is useless if you create something which private/solitary, you need some connectors or introducer for outside of it's package. Here we use interface for this. 
+After defining the entity, some source will interface it.
+In our case, to maintain simplicity, we will skip it for the moment.
 
-Interface here means the face of the entity, for others to able to use it indirectly.
+I will rather explain why we need interface, and how it works.
 
-For interface is stored in folder `internal/data/entity`. 
-I store it in the same folder as entity, as it is closely related to entity. 
-Other structure split it to different folder, it is up to you.           
+Interface enable us to replace the entity with other entity, without changing the code.
+This is extremely useful especially when we do testing.
+
+Example :
+```
+type productA struct{
+    TableName() string
+    Color string
+}
+
+type productB struct{
+    TableName() string
+    Size string
+}
+
+type IProduct interface{
+    TableName() string
+}
+
+//we can return productA since productA implements IProduct interface
+func returnA() IProduct{
+    return &productA{}
+}
+
+//we can return productB since productB implements IProduct interface
+func returnB() IProduct{
+    return &productB{}
+}
 
 ```
-type IProduct interface {
-	TableName() string
+
+### First Form (Part 3):
+_establish repository for entity_
+
+In repository level, things get interesting.
+```
+type rProduct struct {
+	db *gorm.DB
 }
 ```
 
-the prefix I means interface, followed by name of entity.
+Here we have db property inside the repository. It is used to connect and access the database.
+We can say that in repository, we do the actual database operation. 
+Same like model in MVC, except in clean architecture, the operation and the object of the table are separated.
+Smallcase r stands for repository, _i would like to make it private_.
 
-I use smallcase e for entity, and uppercase I for interface.
-e stands for entity , i/I stands for it's interface.
-Uppercase also means it is public component, accessible from outside of its package.
+Next, lets create method called `Create` inside the repository.
 
-I specifically use this for in order to understand and separate it exactly so you don't get confused :D.
+```
+func (r *productRepo) Create(name string) (entity.EProduct, error) {
+	product := EProduct{
+        Name: name,
+    }
+
+	err := r.db.Create(&product).Error
+
+	return &product, err
+}
+```
+The Create method return an entity, and error.
+
+You can add more method inside the repository, like `Get`, `Update`, `Delete`, etc, according to your need.
+
+Ok, from here you already have a basic repository : 
+1. a repository uses entity to get or push data into or from database, using database connection (db property).
+2. a repository should contains only create,update,delete, get method, in the simplest way. It should not contain business logic.
+
+## First Form (Part 4):
+_establish interface for repository_
+
+After defining the repository, we need to define the interface for it.
+
+```
+type RProduct interface {
+	Create(name string) (*entity.EProduct, error)
+}
+
+```
+
+Note that there is rProduct and RProduct. RProduct is the interface, and rProduct is the repository.
+
+Then we create a function to return the repository, and inject the database connection into it.
+```
+// repository for product
+func NewProductRepo(db *gorm.DB) RProduct {
+	repo := &rProduct{
+		db: db,
+	}
+
+	return repo
+}
+```
+
+You will notice that we return an interface on the function.
+
+Ok , before we continue, let's summarize what we got : 
+1. entity : table definition
+2. repository : actual operation of data, using database connection.
+3. repository process and return entity.
+4. repository's interface : to make the repository interchangeable on other level.
+5. we create function that returns repository's interface, but what we return is the implementation of repository itself.
+
+
+## Second Form (Part 1):
+_establish usecase_
+
+Simplified : Usecase is to Clean, as controller is to MVC.
 
 
